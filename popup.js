@@ -303,5 +303,167 @@ async function deleteHighlightFromPopup(hlId) {
   renderList();
 }
 
+// clears ALL highlights on selected site
+async function clearAllHighlightsForSite() {
+  const siteData = allSiteData[selectedSiteKey];
+  if (!siteData) return;
 
-  
+  // wipe from storage
+  await new Promise((resolve) => {
+    chrome.storage.local.remove(selectedSiteKey, resolve);
+  });
+
+  // tell content script if its current tab
+  const currentKey = getStorageKeyForUrl(currentTabUrl);
+  if (selectedSiteKey === currentKey && currentTabId) {
+    chrome.tabs.sendMessage(currentTabId, { action: "clearAll" }, () => {});
+  }
+
+  delete allSiteData[selectedSiteKey];
+
+  // rebuild selector
+  buildSiteSelector();
+  const keys = Object.keys(allSiteData);
+  selectedSiteKey = keys.length > 0 ? keys[0] : "";
+  if (selectedSiteKey) {
+    document.getElementById("siteSelect").value = selectedSiteKey;
+  }
+
+  renderList();
+}
+
+// copies all visible highlights to clipboard in a clean format
+// this is the auto-summary feature
+async function copyAllHighlights() {
+  const siteData = allSiteData[selectedSiteKey];
+  if (!siteData || siteData.highlights.length === 0) return;
+
+  let highlights = siteData.highlights;
+  if (activeColorFilter !== "all") {
+    highlights = highlights.filter((h) => h.color === activeColorFilter);
+  }
+
+  if (highlights.length === 0) return;
+
+  // build nice formatted text
+  const colorOrder = ["red", "blue", "green", "yellow"];
+  const lines = [];
+
+  lines.push("=== ColorCoder Highlights ===");
+
+  // get hostname for header
+  let siteName = selectedSiteKey;
+  try {
+    if (siteData.url) {
+      siteName = new URL(siteData.url).hostname;
+    }
+  } catch (e) {}
+
+  lines.push(`Site: ${siteName}`);
+  lines.push(`Date: ${new Date().toLocaleDateString()}`);
+  lines.push("");
+
+  for (const color of colorOrder) {
+    const items = highlights.filter((h) => h.color === color);
+    if (items.length === 0) continue;
+
+    lines.push(`${color.toUpperCase()}:`);
+    for (const hl of items) {
+      lines.push(`  - ${hl.text.trim()}`);
+    }
+    lines.push("");
+  }
+
+  const text = lines.join("\n").trim();
+
+  // use clipboard api like the spec says
+  try {
+    await navigator.clipboard.writeText(text);
+
+    // show copied feedback
+    const btn = document.getElementById("copyBtn");
+    btn.classList.add("copied");
+    btn.innerHTML = `
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Copied!
+    `;
+    setTimeout(() => {
+      btn.classList.remove("copied");
+      btn.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        Copy All
+      `;
+    }, 2000);
+  } catch (err) {
+    // clipboard failed - happens if popup isnt focused sometimes
+    alert("Couldnt copy to clipboard. Try again.");
+  }
+}
+
+// ---- EVENT LISTENERS ----
+
+function setupEventListeners() {
+  // site selector change
+  document.getElementById("siteSelect").addEventListener("change", (e) => {
+    selectedSiteKey = e.target.value;
+    activeColorFilter = "all";
+    // reset tab active state
+    document.querySelectorAll(".cc-tab").forEach((t) => t.classList.remove("active"));
+    document.querySelector(".cc-tab[data-color='all']").classList.add("active");
+    renderList();
+  });
+
+  // color filter tabs
+  document.getElementById("colorTabs").addEventListener("click", (e) => {
+    const tab = e.target.closest(".cc-tab");
+    if (!tab) return;
+    document.querySelectorAll(".cc-tab").forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+    activeColorFilter = tab.getAttribute("data-color");
+    renderList();
+  });
+
+  // copy button
+  document.getElementById("copyBtn").addEventListener("click", copyAllHighlights);
+
+  // clear button - shows confirm dialog first
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    const overlay = document.getElementById("confirmOverlay");
+    overlay.style.display = "flex";
+  });
+
+  document.getElementById("confirmCancel").addEventListener("click", () => {
+    document.getElementById("confirmOverlay").style.display = "none";
+  });
+
+  document.getElementById("confirmYes").addEventListener("click", async () => {
+    document.getElementById("confirmOverlay").style.display = "none";
+    await clearAllHighlightsForSite();
+  });
+}
+
+// ---- HELPERS ----
+
+// truncates text to max length with ellipsis
+function truncateText(text, maxLen) {
+  if (!text) return "";
+  text = text.trim().replace(/\s+/g, " ");
+  if (text.length <= maxLen) return text;
+  return text.substring(0, maxLen - 1) + "…";
+}
+
+// escapes html to prevent xss when inserting text as innerHTML
+// absolutly necessary since we're inserting user page content
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
