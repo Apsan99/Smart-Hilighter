@@ -303,32 +303,5 @@ async function deleteHighlightFromPopup(hlId) {
   renderList();
 }
 
-// clears ALL highlights on selected site
-async function clearAllHighlightsForSite() {
-  const siteData = allSiteData[selectedSiteKey];
-  if (!siteData) return;
 
-  // wipe from storage
-  await new Promise((resolve) => {
-    chrome.storage.local.remove(selectedSiteKey, resolve);
-  });
-
-  // tell content script if its current tab
-  const currentKey = getStorageKeyForUrl(currentTabUrl);
-  if (selectedSiteKey === currentKey && currentTabId) {
-    chrome.tabs.sendMessage(currentTabId, { action: "clearAll" }, () => {});
-  }
-
-  delete allSiteData[selectedSiteKey];
-
-  // rebuild selector
-  buildSiteSelector();
-  const keys = Object.keys(allSiteData);
-  selectedSiteKey = keys.length > 0 ? keys[0] : "";
-  if (selectedSiteKey) {
-    document.getElementById("siteSelect").value = selectedSiteKey;
-  }
-
-  renderList();
-}
-
+  
