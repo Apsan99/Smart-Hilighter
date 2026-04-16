@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColorCoder</title>
+  <style>
+    /* popup styles - i tried to make it look nice but im not a designer lol */
+
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-base:     #13131f;
+      --bg-surface:  #1e1e2e;
+      --bg-raised:   #282840;
+      --border:      rgba(255,255,255,0.08);
+      --border-bright: rgba(255,255,255,0.18);
+      --text-main:   #e8e8f0;
+      --text-dim:    rgba(232,232,240,0.5);
+      --text-muted:  rgba(232,232,240,0.3);
+      --accent:      #a78bfa;
+      --accent-glow: rgba(167,139,250,0.25);
+
+      --red-bg:    #FF6B6B;
+      --red-text:  #5C0000;
+      --blue-bg:   #74B9FF;
+      --blue-text: #003580;
+      --green-bg:  #55EFC4;
+      --green-text:#003D2B;
+      --yellow-bg: #FDCB6E;
+      --yellow-text:#5C3A00;
+    }
+
+    body {
+      width: 360px;
+      min-height: 200px;
+      max-height: 560px;
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- HEADER ---- */
+    .cc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: linear-gradient(180deg, rgba(167,139,250,0.06) 0%, transparent 100%);
+    }
+
+    .cc-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cc-logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #a78bfa, #74B9FF);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .cc-logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .cc-logo-text span {
+      color: var(--accent);
+    }
+
+    .cc-count-badge {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    /* ---- SITE SELECTOR ---- */
+    .cc-site-section {
+      padding: 10px 16px 6px;
+      flex-shrink: 0;
+    }
+
+    .cc-site-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .cc-site-select {
+      width: 100%;
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 10px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(232,232,240,0.4)' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+
+    .cc-site-select:hover,
+    .cc-site-select:focus {
+      border-color: var(--border-bright);
+    }
+
+    .cc-site-select option {
+      background: var(--bg-surface);
+      color: var(--text-main);
+    }
+
+    /* ---- FILTER TABS ---- */
+    .cc-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 0 16px 8px;
+      flex-shrink: 0;
+    }
+
+    .cc-tab {
+      flex: 1;
+      padding: 5px 6px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      transition: all 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .cc-tab:hover {
+      background: var(--bg-raised);
+      color: var(--text-main);
+    }
+
+    .cc-tab.active {
+      background: var(--bg-raised);
+      border-color: var(--border-bright);
+      color: var(--text-main);
+    }
+
+    .cc-tab-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ---- HIGHLIGHTS LIST ---- */
+    .cc-list-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 8px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg-raised) transparent;
+    }
+
+    .cc-list-area::-webkit-scrollbar {
+      width: 4px;
+    }
+    .cc-list-area::-webkit-scrollbar-track { background: transparent; }
+    .cc-list-area::-webkit-scrollbar-thumb {
+      background: var(--bg-raised);
+      border-radius: 2px;
+    }
+
+    /* color group headers */
+    .cc-group {
+      margin-bottom: 12px;
+    }
+
+    .cc-group-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 6px;
+      padding-top: 4px;
+    }
+
+    .cc-group-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cc-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+
+    .cc-group-num {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* individual highlight items */
+    .cc-hl-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, transform 0.1s;
+      position: relative;
+    }
+
+    .cc-hl-item:hover {
+      background: var(--bg-raised);
+      border-color: var(--border-bright);
+      transform: translateX(2px);
+    }
+
+    .cc-hl-color-strip {
+      width: 3px;
+      align-self: stretch;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .cc-hl-preview {
+      flex: 1;
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.4;
+      font-weight: 400;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .cc-hl-del-btn {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: opacity 0.12s, color 0.12s, background 0.12s;
+      flex-shrink: 0;
+    }
+
+    .cc-hl-item:hover .cc-hl-del-btn {
+      opacity: 1;
+    }
+
+    .cc-hl-del-btn:hover {
+      color: #ff6b6b;
+      background: rgba(255,107,107,0.12);
+    }
+
+    /* empty state */
+    .cc-empty {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--text-muted);
+    }
+
+    .cc-empty-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    .cc-empty-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 5px;
+    }
+
+    .cc-empty-sub {
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* ---- FOOTER ACTIONS ---- */
+    .cc-footer {
+      padding: 10px 16px 14px;
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      background: linear-gradient(0deg, rgba(0,0,0,0.2) 0%, transparent 100%);
+    }
+
+    .cc-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .cc-btn-copy {
+      background: rgba(167,139,250,0.12);
+      border-color: rgba(167,139,250,0.3);
+      color: #a78bfa;
+    }
+
+    .cc-btn-copy:hover {
+      background: rgba(167,139,250,0.22);
+      border-color: rgba(167,139,250,0.5);
+    }
+
+    .cc-btn-copy.copied {
+      background: rgba(85,239,196,0.12);
+      border-color: rgba(85,239,196,0.3);
+      color: #55efc4;
+    }
+
+    .cc-btn-clear {
+      background: rgba(255,107,107,0.08);
+      border-color: rgba(255,107,107,0.2);
+      color: rgba(255,107,107,0.7);
+    }
+
+    .cc-btn-clear:hover {
+      background: rgba(255,107,107,0.18);
+      border-color: rgba(255,107,107,0.4);
+      color: #ff6b6b;
+    }
+
+    /* confirm dialog */
+    .cc-confirm-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(13,13,25,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+      animation: cc-pop-in 0.15s ease;
+    }
+
+    .cc-confirm-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 14px;
+      padding: 20px 20px 16px;
+      text-align: center;
+      width: 260px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+
+    .cc-confirm-icon {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .cc-confirm-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .cc-confirm-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .cc-confirm-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .cc-confirm-btns button {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all 0.12s;
+    }
+
+    .cc-confirm-cancel {
+      background: var(--bg-raised);
+      color: var(--text-main);
+    }
+
+    .cc-confirm-cancel:hover {
+      background: var(--bg-raised);
+      border-color: var(--border-bright);
+    }
+
+    .cc-confirm-yes {
+      background: rgba(255,107,107,0.15);
+      border-color: rgba(255,107,107,0.3) !important;
+      color: #ff6b6b;
+    }
+
+    .cc-confirm-yes:hover {
+      background: rgba(255,107,107,0.25);
+    }
+
+    @keyframes cc-pop-in {
+      from { opacity: 0; transform: scale(0.9); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* ---- LOADING STATE ---- */
+    .cc-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 12px;
+      gap: 8px;
+    }
+
+    .cc-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: cc-spin 0.7s linear infinite;
+    }
+
+    @keyframes cc-spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="cc-header">
+    <div class="cc-logo">
+      <div class="cc-logo-icon">✍️</div>
+      <div class="cc-logo-text">Color<span>Coder</span></div>
+    </div>
+    <div class="cc-count-badge" id="totalBadge">0 highlights</div>
+  </div>
+
+  <!-- SITE SELECTOR - users can pick which sites highlights to view -->
+  <div class="cc-site-section">
+    <div class="cc-site-label">Site</div>
+    <select class="cc-site-select" id="siteSelect">
+      <option value="">Loading...</option>
+    </select>
+  </div>
+
+  <!-- COLOR FILTER TABS -->
+  <div class="cc-tabs" id="colorTabs">
+    <button class="cc-tab active" data-color="all">All</button>
+    <button class="cc-tab" data-color="red">
+      <span class="cc-tab-dot" style="background:#FF6B6B"></span> Red
+    </button>
+    <button class="cc-tab" data-color="blue">
+      <span class="cc-tab-dot" style="background:#74B9FF"></span> Blue
+    </button>
+    <button class="cc-tab" data-color="green">
+      <span class="cc-tab-dot" style="background:#55EFC4"></span> Green
+    </button>
+    <button class="cc-tab" data-color="yellow">
+      <span class="cc-tab-dot" style="background:#FDCB6E"></span> Yellow
+    </button>
+  </div>
+
+  <!-- HIGHLIGHTS LIST -->
+  <div class="cc-list-area" id="listArea">
+    <div class="cc-loading">
+      <div class="cc-spinner"></div>
+      Loading...
+    </div>
+  </div>
+
+  <!-- FOOTER BUTTONS -->
+  <div class="cc-footer">
+    <button class="cc-btn cc-btn-copy" id="copyBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      Copy All
+    </button>
+    <button class="cc-btn cc-btn-clear" id="clearBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>
+      </svg>
+      Clear All
+    </button>
+  </div>
+
+  <!-- confirm overlay (hidden by default) -->
+  <div class="cc-confirm-overlay" id="confirmOverlay" style="display:none; position:fixed;">
+    <div class="cc-confirm-box">
+      <div class="cc-confirm-icon">🗑️</div>
+      <div class="cc-confirm-title">Clear all highlights?</div>
+      <div class="cc-confirm-sub">This removes all highlights on this site. You cant undo this.</div>
+      <div class="cc-confirm-btns">
+        <button class="cc-confirm-cancel" id="confirmCancel">Cancel</button>
+        <button class="cc-confirm-yes" id="confirmYes">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

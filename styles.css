@@ -1,0 +1,164 @@
+/* styles.css - ColorCoder styles */
+/* this handles both the floating menus injected into pages AND the popup */
+/* some of these rules might be a bit redundant but whatever it works */
+
+/* ---- FLOATING HIGHLIGHT MENU (injected into pages) ---- */
+
+#colorcoder-floating-menu {
+  position: absolute;
+  z-index: 2147483647; /* max z-index so it shows over everything */
+  background: #1e1e2e;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.3);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  user-select: none;
+  animation: cc-fade-in 0.15s ease;
+  min-width: 130px;
+}
+
+.cc-menu-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 2px;
+}
+
+.cc-color-btns {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+
+.cc-color-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.cc-color-btn:hover {
+  transform: scale(1.2);
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: 0 0 8px rgba(255,255,255,0.25);
+}
+
+.cc-color-btn:active {
+  transform: scale(0.95);
+}
+
+/* ---- HIGHLIGHT CLICK MENU (recolor/delete) ---- */
+
+#colorcoder-highlight-menu {
+  position: absolute;
+  z-index: 2147483647;
+  background: #1e1e2e;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  user-select: none;
+  animation: cc-fade-in 0.15s ease;
+  min-width: 160px;
+}
+
+.cc-hl-menu-colors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cc-hl-menu-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-right: 2px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.cc-recolor-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+  padding: 0;
+}
+
+.cc-recolor-btn:hover {
+  transform: scale(1.2);
+  border-color: rgba(255,255,255,0.6);
+}
+
+.cc-recolor-btn.active {
+  border-color: white;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.3);
+}
+
+.cc-delete-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 80, 80, 0.15);
+  border: 1px solid rgba(255, 80, 80, 0.3);
+  color: #ff6b6b;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  transition: background 0.12s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.cc-delete-btn:hover {
+  background: rgba(255, 80, 80, 0.3);
+}
+
+/* ---- HIGHLIGHT SPANS (applied to page text) ---- */
+
+.colorcoder-highlight {
+  border-radius: 3px;
+  padding: 0 2px;
+  cursor: pointer;
+  transition: opacity 0.15s, filter 0.15s;
+  position: relative;
+}
+
+.colorcoder-highlight:hover {
+  filter: brightness(1.1);
+  opacity: 0.88;
+}
+
+/* ---- ANIMATIONS ---- */
+
+@keyframes cc-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
