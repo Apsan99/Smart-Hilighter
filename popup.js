@@ -303,23 +303,32 @@ async function deleteHighlightFromPopup(hlId) {
   renderList();
 }
 
-// ---- HELPERS ----
+// clears ALL highlights on selected site
+async function clearAllHighlightsForSite() {
+  const siteData = allSiteData[selectedSiteKey];
+  if (!siteData) return;
 
-// truncates text to max length with ellipsis
-function truncateText(text, maxLen) {
-  if (!text) return "";
-  text = text.trim().replace(/\s+/g, " ");
-  if (text.length <= maxLen) return text;
-  return text.substring(0, maxLen - 1) + "…";
+  // wipe from storage
+  await new Promise((resolve) => {
+    chrome.storage.local.remove(selectedSiteKey, resolve);
+  });
+
+  // tell content script if its current tab
+  const currentKey = getStorageKeyForUrl(currentTabUrl);
+  if (selectedSiteKey === currentKey && currentTabId) {
+    chrome.tabs.sendMessage(currentTabId, { action: "clearAll" }, () => {});
+  }
+
+  delete allSiteData[selectedSiteKey];
+
+  // rebuild selector
+  buildSiteSelector();
+  const keys = Object.keys(allSiteData);
+  selectedSiteKey = keys.length > 0 ? keys[0] : "";
+  if (selectedSiteKey) {
+    document.getElementById("siteSelect").value = selectedSiteKey;
+  }
+
+  renderList();
 }
 
-// escapes html to prevent xss when inserting text as innerHTML
-// absolutly necessary since we're inserting user page content
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}

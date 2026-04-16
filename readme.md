@@ -1,4 +1,4 @@
-# ColorCoder ✍️
+# ColorCoder 
 **A local-first study highlighter for Chrome**
 
 highlight stuff on any webpage. it saves. it comes back when you reload. you can organize it. pretty cool honestly
@@ -17,11 +17,8 @@ highlight stuff on any webpage. it saves. it comes back when you reload. you can
 
 5. Thats it. The extension icon appears in your toolbar. Pin it if you want
 
-> Note: if you update the files you have to click the refresh button on the extensions page. i forget this every time
 
----
 
-## How to Use
 
 ### Highlighting Text
 - Go to any webpage
@@ -47,25 +44,7 @@ Click the ColorCoder icon in the toolbar to open the popup. From here you can:
 - **Clear All** - removes every highlight on the selected site (asks you to confirm first)
 
 
-## How Persistence Works
 
-highlights are saved to `chrome.storage.local` - they stay on your device, no account needed
-
-when you reload a page, the extension tries to put your highlights back using a **hybrid system**:
-1. first it tries **XPath** - finds the exact element the text was in
-2. if the page changed and XPath fails, it falls back to **text search** - scans the page for your highlighted text
-3. it also checks for **duplicate highlights** before restoring so you don't get doubles
-
-this means highlights usually survive:
-- normal page reloads
-- minor page updates
-- clearing browser cache (storage is separate)
-
-highlights do NOT survive:
-- clearing site data / storage specifically
-- major page redesigns that change the text content
-
----
 
 ## Files
 ```
