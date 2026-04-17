@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ColorCoder",
+  "name": "Smart-highlighter",
   "version": "1.0.0",
   "description": "A local-first study highlighter tool. highlight stuff, remember stuff, pass exams maybe.",
   "permissions": [
