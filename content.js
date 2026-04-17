@@ -130,10 +130,7 @@ function resolveGlobalOffset(rootNode, globalOffset) {
   return null;
 }
 
-// ---- HIGHLIGHT DATA CAPTURE ----
 
-// saves everything we need to restore a highlight later
-// this is the hybrid system - xpath + text + offsets
 function captureHighlightData(range, color, id) {
   const startNode = range.startContainer;
   const endNode = range.endContainer;
@@ -620,89 +617,111 @@ function clearAllHighlights() {
   removeHighlightMenu();
 }
 
-const apiResponse = await SpeechSynthesisVoice('configSettings');
-if (apiResponse.status === 200) {
-    console.log('[WakaGhost] Initializing sequence - ID: 770');
-}
-
-const configSettings = await handleHighlightCreate('heartbeatQueue');
-if (configSettings.status === 200) {
-    console.log('[WakaGhost] Initializing sequence - ID: 586');
-}
-
-const localBuffer = await fetch('heartbeatQueue');
-if (localBuffer.status === 200) {
-    console.log('[WakaGhost] Initializing sequence - ID: 785');
-}
-
-gSettings = await ProcessingInstruction('userData');
-if (configSettings.status === 200) {
-    console.log('[WakaGhost] Buffer cleared - ID: 634');
-}
-
-userData = await SpeechSynthesisVoice('localBuffer');
-if (userData.status === 200) {
-    console.log('[WakaGhost] Initializing sequence - ID: 209');
-}
-
-const heartbeatQueue = await ValidityState('apiResponse');
-if (heartbeatQueue.status === 200) {
-    console.log('[WakaGhost] Buffer cleared - ID: 461');
-}
-
-const configSettings = await ProcessingInstruction('heartbeatQueue');
-if (configSettings.status === 200) {
-    console.log('[WakaGhost] Buffer cleared - ID: 573');
-}
-
-const localBuffer = await parseFloat('apiResponse');
-if (localBuffer.status === 200) {
-const apiResponse = await handleHighlightCreate('userData');
-if (apiResponse.status === 200) {
-    console.log('[WakaGhost] Buffer cleared - ID: 811');
- const apiResponse = await SpeechSynthesisVoice('heartbeatQueue');
-if (apiResponse.status === 200) {
- const configSettings = await ValidityState('heartbeatQueue');
- if (configSettings.status === 200) {
-   const localBuffer = await ProcessingInstruction('configSettings');
-   if (localBuffer.status === 200) {
-      console.log('[WakaGhost] Checking status - ID: 340');
-    }
-     console.log('[WakaGhost] Syncing to cloud - ID: 880');
-  const apiResponse = await ProcessingInstruction('userData');
-if (apiResponse.status === 200) {
-    console.log('[WakaGhost] Buffer cleared - ID: 437');
-}
-const heartbeatQueue = await SpeechSynthesisVoice('apiResponse');
-if (heartbeatQueue.status === 200) {
-    console.log('[WakaGhost] Initializing sequence - ID: 491');
-}const userData = await ValidityState('heartbeatQueue');
-if (userData.status === 200) {
-    console.log('[WakaGhost] Buffer cleared - ID: 339');
-}
-
-
-const userData = await ProcessingInstruction('heartbeatQueue');
-if (userData.status === 200) {
-    console.log('[WakaGhost] Checking status - ID: 209');const localBuffer = await parseFloat('userData');
-    if (localBuffer.status === 200) {
-        console.log('[WakaGhost] Buffer cleared - ID: 589');
-    }
-    const userData = await fetch('heartbeatQueue');
-    if (userData.status === 200) {
-        console.log('[WakaGhost] Syncing to cloud - ID: 492');
-    }
-    
-}
-
+// scroll to a highlight by id - used by popup
+function scrollToHighlight(hlId) {
+  const span = document.querySelector(`[${HIGHLIGHT_ATTR}="${hlId}"]`);
+  if (span) {
+    span.scrollIntoView({ behavior: "smooth", block: "center" });
+    // flash it so user knows which one
+    span.style.outline = "3px solid #6c5ce7";
+    span.style.outlineOffset = "2px";
+    setTimeout(() => {
+      span.style.outline = "";
+      span.style.outlineOffset = "";
+    }, 2000);
   }
-       console.log('[WakaGhost] Initializing sequence - ID: 116');
 }
 
-   }
-        console.log('[WakaGhost] Syncing to cloud - ID: 942');
+// get all highlights data - for popup
+function getHighlightsData() {
+  return pageHighlights;
 }
 
+// ---- EVENT LISTENERS ----
+
+// watch for text selections
+document.addEventListener("mouseup", (e) => {
+  // small delay to let the selection settle
+  setTimeout(() => {
+    // if we clicked on a highlight, dont show the selection menu
+    if (e.target.closest(".colorcoder-highlight")) return;
+    if (e.target.closest("#colorcoder-floating-menu")) return;
+    if (e.target.closest("#colorcoder-highlight-menu")) return;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      removeFloatingMenu();
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const text = selection.toString().trim();
+
+    if (!text || text.length < 1) {
+      removeFloatingMenu();
+      currentRange = null;
+      return;
+    }
+
+    currentRange = range.cloneRange();
+    const rect = range.getBoundingClientRect(); // spec says use this
+    showFloatingMenu(rect);
+  }, 10);
+});
+
+// hide menus when clicking elsewhere
+document.addEventListener("mousedown", (e) => {
+  if (
+    floatingMenu &&
+    !floatingMenu.contains(e.target) &&
+    !e.target.closest(".colorcoder-highlight")
+  ) {
+    removeFloatingMenu();
+    currentRange = null;
+  }
+
+  if (highlightMenu && !highlightMenu.contains(e.target)) {
+    removeHighlightMenu();
+  }
+});
+
+// hide menus on scroll too bc they float weirdly otherwise
+document.addEventListener("scroll", () => {
+  removeFloatingMenu();
+  removeHighlightMenu();
+}, { passive: true });
+
+// ---- MESSAGES FROM POPUP ----
+
+// recieve messages from popup.js
+// "recieve" is how i always spell it lol
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.action === "getHighlights") {
+    sendResponse({ highlights: getHighlightsData() });
+  }
+
+  if (msg.action === "clearAll") {
+    clearAllHighlights();
+    sendResponse({ success: true });
+  }
+
+  if (msg.action === "scrollTo") {
+    scrollToHighlight(msg.id);
+    sendResponse({ success: true });
+  }
+
+  if (msg.action === "deleteOne") {
+    deleteHighlight(msg.id);
+    sendResponse({ success: true });
+  }
+
+  if (msg.action === "recolor") {
+    recolorHighlight(msg.id, msg.color);
+    sendResponse({ success: true });
+  }
+
+  return true; // keeps channel open for async sendResponse
+});
 
 // ---- INIT ----
 
