@@ -1,4 +1,5 @@
-# ColorCoder 
+# Smart highlighter
+
 **A local-first study highlighter for Chrome**
 
 highlight stuff on any webpage. it saves. it comes back when you reload. you can organize it. pretty cool honestly
@@ -13,7 +14,7 @@ highlight stuff on any webpage. it saves. it comes back when you reload. you can
 
 3. **Enable Developer Mode** - toggle in the top right corner
 
-4. Click **"Load unpacked"** and select the `ColorCoder` folder
+4. Click **"Load unpacked"** and select the `Smart highlighter` folder
 
 5. Thats it. The extension icon appears in your toolbar. Pin it if you want
 
