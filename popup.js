@@ -156,8 +156,8 @@ function renderList() {
   if (!siteData || siteData.highlights.length === 0) {
     listArea.innerHTML = `
       <div class="cc-empty">
-        <div class="cc-empty-icon">✨</div>
-        <div class="cc-empty-title">No highlights here yet</div>
+        <div class="cc-empty-icon"></div>
+        <div class="cc-empty-title">No highlights here bro </div>
         <div class="cc-empty-sub">Select some text on a webpage and<br>pick a color to start highlighting!</div>
       </div>
     `;
